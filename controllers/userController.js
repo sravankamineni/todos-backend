@@ -46,9 +46,16 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new Error("All fields are mandaroty")
     }
     const userExist = await User.findOne({ email })
-    if (!userExist) throw new Error("Invalid User")
-
+    if (!userExist) {
+        res.status(400)
+        throw new Error("Invalid User")
+    }
     const isMatch = await bcrypt.compare(password, userExist.password);
+
+    if(!isMatch){
+        res.status(404)
+        throw new Error("Incorret Password")
+    }
 
     if (userExist && isMatch) {
         const token = jwt.sign(
@@ -60,15 +67,17 @@ const loginUser = asyncHandler(async (req, res) => {
                 }
             },
             process.env.JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: '15m' }
         );
 
         res.status(201).json({ token })
     }
-    else {
+    else{
         res.status(400)
-        throw new Error("Invalid Passsword")
+        throw new Error("Invalid Email or Passsword")
     }
+   
+
 
 })
 
